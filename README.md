@@ -1,89 +1,79 @@
-# traefik-swarm
+# Traefik
 
-Use traefik reverse proxy with docker swarm, based on this blog post: https://dockerswarm.rocks/traefik/
+Use traefik reverse proxy with Docker Standalone, based on <https://github.com/studiomitte/traefik-swarm> which is based on this blog post: <https://dockerswarm.rocks/traefik/>
 
 * docker service name is *traefik*
 * overlay network name is *traefik-public*
-* uses docker "host mode" to get real ip addresses and enable ipv6 ingress 
-* configured to run on single node in swarm based on constraints
+* uses docker "host mode" to get real ip addresses and enable ipv6 ingress
 * predefined middlewares for http, https and redirects from non-www to www
 
 ## Setup instructions
-Add the following environment variables or use a shell script for that.
 
+Create docker network
 
-Create docker overlay network
-```
-docker network create --driver=overlay --attachable traefik-public
-```
-
-  
-
-Export current Node Id to ensure that traefik runs always on same node
-```
-export NODE_ID=$(docker info -f '{{.Swarm.NodeID}}')
+```bash
+docker network create --attachable traefik-public
 ```
 
-  
+Set the Cloudflare API Token in the docker-compose.yml
 
-Create tag on node to add constraint for deployment
-```
-docker node update --label-add traefik-public.traefik-public-certificates=true $NODE_ID
-```
-
-  
-
-Create Email for letsencrypt notifications
-```
-export EMAIL=my@email.com
-```
-  
-
-Domain for traefik UI
-```
-export DOMAIN=my.domain.com
+```yaml
+environment:
+      # Cloudflare API token
+      - CF_DNS_API_TOKEN=APIKEY
 ```
 
-  
+Generate the Basic Auth User for Traefik
 
-Basic Auth User for Traefik
-
-```
-export USERNAME=MY_USER \
-export PASSWORD=MY_SECURE_PASSWORD
+```bash
+echo $(htpasswd -nb MYUSER MYPASSWD) | sed -e s/\\$/\\$\\$/g
 ```
 
-  
-Hash Password
-```
-export HASHED_PASSWORD=$(openssl passwd -apr1 $PASSWORD)
-```
+Copy the output to the docker-compose.yml
 
-  
-
-Deploy Stack:
-```
-docker stack deploy -c docker-compose.yml traefik
+```yaml
+labels:
+      ...
+      # Middleware Basic Auth / Middleware de Basic Auth
+      - "traefik.http.middlewares.admin-auth.basicauth.users=MYUSER:$$apr1$$yjuBx8Nd$$4fRCCxbgB2MQwqaYgPx7L."
 ```
 
-  
+Set the Let's Encrypt email in the config/config.yaml
 
-Access Logs & Rotation
-----------------------
+```yaml
+certificatesResolvers:
+  le:
+    acme:
+      email: mail@domain.com 
+      storage: /certificates/acme.json
+      # Production
+      caServer: "https://acme-v02.api.letsencrypt.org/directory"
+      # Staging
+      #caServer: "https://acme-staging-v02.api.letsencrypt.org/directory"
+```
+
+Docker compose up
+
+```bash
+docker compose up -d
+```
+
+## Access Logs & Rotation
+
 The example has access log enabled and will log all traefik to a mounted host directory, log rotation on the host system rotates the logs periodically.
 
-*   Create directory, e.g. `/var/log/traefik` and mount it in traefik docker-compose file
+* Create directory, e.g. `/var/log/traefik` and mount it in traefik docker-compose file
 
-```
+```yaml
     volumes:
       ...
       # Mount log folder
       - /var/log/traefik:/var/log/traefik
 ```
 
-*   Add log rotation on Host System - example for Ubuntu
+* Add log rotation on Host System - example for Ubuntu
 
-```
+```bash
 nano /etc/logrotate.d/traefik
 
 # assuming traefik container contains "traefik" in its name

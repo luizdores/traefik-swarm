@@ -1,0 +1,34 @@
+services:
+
+  my-service:
+    image: nginx:latest
+    labels:
+        # Traefik labels
+        - "traefik.enable=true"
+        - "traefik.docker.network=traefik-public"
+        - "traefik.constraint-label=traefik-public"
+        
+        # HTTP router
+        - "traefik.http.routers.my-service.rule=Host(`my-domain.com`, `www.my-domain.com`)"
+        - "traefik.http.routers.my-service.entrypoints=http"
+        - "traefik.http.routers.my-service.middlewares=https-redirect"
+
+        # HTTP to HTTPS middleware
+        - "traefik.http.routers.my-service-http.middlewares=https-redirect@docker"
+
+        # HTTPS router
+        - "traefik.http.routers.my-service-https.rule=Host(`my-domain.com`, `www.my-domain.com`)"
+        - "traefik.http.routers.my-service-https.entrypoints=https"
+
+        # HTTPS Router SSL
+        - "traefik.http.routers.my-service-https.tls=true"
+        - "traefik.http.routers.my-service-https.tls.certresolver=le"
+
+        # Nginx service
+        - "traefik.http.services.my-service-https.loadbalancer.server.port=80"
+    networks:
+      - traefik-public
+
+networks:
+  traefik-public:
+    external: true
