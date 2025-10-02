@@ -1,0 +1,22 @@
+http:
+  routers:
+    gitlab-http:
+      entryPoints:
+        - http
+      rule: Host(`gitlab.seu.dominio.com.br`)
+      middlewares:
+        - https-redirect
+      service: gitlab
+    gitlab-https:
+      entryPoints:
+        - https
+      rule: Host(`gitlab.seu.dominio.com.br`)
+      middlewares:
+        - default-headers
+      service: gitlab
+  services:
+    gitlab:
+      loadBalancer:
+        servers:
+          - url: "http://IP_DO_SEU_GITLAB:80"
+        passHostHeader: true

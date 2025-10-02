@@ -1,0 +1,22 @@
+http:
+  routers:
+    gitlab-registry-http:
+      entryPoints:
+        - http
+      rule: Host(`gitlabregistry.seu.dominio.com.br`)
+      middlewares:
+        - https-redirect
+      service: gitlab-registry
+    gitlab-registry-https:
+      entryPoints:
+        - https
+      rule: Host(`gitlabregistry.seu.dominio.com.br`)
+      middlewares:
+        - default-headers
+      service: gitlab-registry
+  services:
+    gitlab-registry:
+      loadBalancer:
+        servers:
+          - url: "http://IP_DO_SEU_GITLAB:5050"
+        passHostHeader: true

@@ -22,21 +22,11 @@ entryPoints:
     transport:
       respondingTimeouts:
         readTimeout: 0
-
-certificatesResolvers:
-  le:
-    acme:
-      email: email@domain.com 
-      storage: /certificates/acme.json
-      # Production
-      caServer: "https://acme-v02.api.letsencrypt.org/directory"
-      # Staging
-      #caServer: "https://acme-staging-v02.api.letsencrypt.org/directory"
-      dnsChallenge:
-        provider: cloudflare
-        resolvers:
-          - "1.1.1.1:53"
-          - "8.8.8.8:53"
+  ssh:
+    address: :10122
+    transport:
+      respondingTimeouts:
+        readTimeout: 0
 api:
   dashboard: true
 log:

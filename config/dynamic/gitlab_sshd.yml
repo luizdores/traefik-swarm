@@ -1,0 +1,12 @@
+tcp:
+  routers:
+    gitea-ssh-router:
+      entryPoints:
+        - ssh
+      rule: HostSNI(`*`)
+      service: gitlab-ssh
+  services:
+    gitlab-ssh:
+      loadBalancer:
+        servers:
+          - address: "IP_DO_SEU_GITLAB:10122"

@@ -15,14 +15,6 @@ Create docker network
 docker network create --attachable traefik-public
 ```
 
-Set the Cloudflare API Token in the docker-compose.yml
-
-```yaml
-environment:
-      # Cloudflare API token
-      - CF_DNS_API_TOKEN=APIKEY
-```
-
 Generate the Basic Auth User for Traefik
 
 ```bash
@@ -36,20 +28,6 @@ labels:
       ...
       # Middleware Basic Auth / Middleware de Basic Auth
       - "traefik.http.middlewares.admin-auth.basicauth.users=MYUSER:$$apr1$$yjuBx8Nd$$4fRCCxbgB2MQwqaYgPx7L."
-```
-
-Set the Let's Encrypt email in the config/config.yaml
-
-```yaml
-certificatesResolvers:
-  le:
-    acme:
-      email: mail@domain.com 
-      storage: /certificates/acme.json
-      # Production
-      caServer: "https://acme-v02.api.letsencrypt.org/directory"
-      # Staging
-      #caServer: "https://acme-staging-v02.api.letsencrypt.org/directory"
 ```
 
 Docker compose up
